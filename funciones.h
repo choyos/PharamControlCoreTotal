@@ -10,23 +10,43 @@ Login: ceshoymar */
 
 #include "typedef.h"
 
+//Crea un nuevo tipo laboratorio con la informacion que se necesita
+LABORATORY * CreaNodoLab(char * fileName);
+
 //Crea un nodo de tipo medicina, con la información leida de la trama.
 MEDICINE * CreaNodoMed ( int stock, float precio_med, float precio_alm, float coste_pedido, float coste_recogida, float coste_sin_stock, float coste_oportunidad, int* repartidos, int maxStock, int minStock, int nTamPedidos, int* vTamPedidos, int horizonte);
 
-void EnlazaMedicinas (MEDICINE * medicinaNueva, MEDICINE ** medicinaPrimera);	//Crea la lista de medicinas enlazando, de forma ordenada según criterio a fijar.
+//Crea la lista de laboratorios enlazando los nodos
+void EnlazaLabs (LABORATORY * laboratorioNuevo, LABORATORY ** laboratorioPrimero);
 
-void BorraMedicinas (MEDICINE ** medicinaPrimera); //Borra la lista completa de medicinas liberando la memoria.
+//Crea la lista de medicinas enlazando los medicamentos.
+void EnlazaMedicinas (MEDICINE * medicinaNueva, MEDICINE ** medicinaPrimera);	
 
-void ImprimeMedicinas (MEDICINE * pAnterior, int horizonte, int numPedidos);	//Imprime todos los datos de todos los medicamentos leidos
+//Borra los nodos de los laboratorios, usa la funcion BorraMedicinas
+void BorraLabs(LABORATORY ** laboratorioPrimero);
 
-void MatrizCombMedicinas (MEDICINE ** medicinaPrimera, int numPedidos);		//Realiza el calculo de la matriz de combinaciones de las diferentes medicinas y las añade a la estructura
+//Borra la lista completa de medicinas liberando la memoria.
+void BorraMedicinas (MEDICINE ** medicinaPrimera); 
 
-float EvaluaMedicinas(MEDICINE ** medicinaPrimera, int horizonte, int numPedidos, int * posibilidad, int ** matPedidosOptimos, int ** matStockOptimo, float * Jmin);	//Realiza el calculo de coste total
+//Imprime todos los datos de todos los medicamentos leidos
+void ImprimeMedicinas (MEDICINE * pAnterior, int horizonte, int numPedidos);
 
-void AlmacenaOptimos(MEDICINE ** medicinaPrimera, int horizonte, int ** matPedidosOptimos, int ** matStockOptimo, float * Jmin);	//Función para almacenar las variables optimas ligadas a los medicamentos
+//Realiza el calculo de la matriz de combinaciones de las diferentes medicinas y las añade a la estructura
+void MatrizCombMedicinas (MEDICINE ** medicinaPrimera, int numPedidos);
 
-void ImprimeResultados(MEDICINE ** medicinaPrimera, int horizonte);		//Funcion para imprimir de forma presentable los resultados
+//Realiza el calculo de coste total
+float EvaluaMedicinas(MEDICINE ** medicinaPrimera, int horizonte, int numPedidos, int * posibilidad, int ** matPedidosOptimos, int ** matStockOptimo, float * Jmin);
 
-void BorraMedicina(MEDICINE * medicina);	//Función que borra un medicamento
+//Función para almacenar las variables optimas ligadas a los medicamentos
+void AlmacenaOptimos(MEDICINE ** medicinaPrimera, int horizonte, int ** matPedidosOptimos, int ** matStockOptimo, float * Jmin);
+
+//Funcion que imprime los resultados de ejecución del programa. Hace uso de ImprimeResultadosMeds
+void ImprimeResultados(LABORATORY ** laboratorioPrimero, int horizonte);
+
+//Funcion para imprimir de forma presentable los resultados de los medicamentos
+void ImprimeResultadosMeds(MEDICINE ** medicinaPrimera, int horizonte, float Jtotal);
+
+//Función que borra un medicamento
+void BorraMedicina(MEDICINE * medicina);
 
 #endif

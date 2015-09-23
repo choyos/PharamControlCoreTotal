@@ -36,13 +36,11 @@ typedef struct NODEMEDICINE{
 Esta estructura incorpora una tabla con el nombre del laboratorio,
 y dos punteros: al siguiente laboratorio, con la finalidad de montar una lista util para manejar mejor la informacion;y al primer medicamento de este laboratorio, con la finalidad de completar así el arbol con toda la informacion necesaria.*/
 typedef struct NODELAB{
-	char * lab;		/*Nombre del laboratorio*/
-	char * code_lab;	/*Codigo del laboratorio*/	
-	int minOrder;		/*Pedido minimo a realizar*/
-	int priceOrder;		/*Valor del pedido que se haria con los deficit actuales*/
-	int* historicalOrders;	/*Tabla con los valores historicos de los pedidos realizados*/
+	char * fileName;	/*Nombre del laboratorio*/
+	float Jtotal;		/*Variable para almacenar el coste total asociado a un determinado laboratorio*/
+	int numMed;			/*Variable para el conteo de medicamentos del laboratorio*/
 	struct NODELAB * sig;
-	struct NODEMEDICINE * firstmedicine;
+	struct NODEMEDICINE * listaMeds;
 }LABORATORY;
 
 #endif

@@ -39,9 +39,18 @@ int main(int argc, char *argv[]){
 	int n;		//Auxiliar para recalculo y traspaso de matrices
 	int limite=1;	//Limite para el calculo del tope de posibilidades
 	int error=0;	//Variable de error
+	int labsIndex = 0;
+
+
+	//Variables para el trabajo con la lista de laboratorios
+	LABORATORY * listaLabs = NULL;
+	LABORATORY * labNuevo = NULL;
+	LABORATORY ** labPrimero = NULL;
+	LABORATORY * paux = NULL;
+	LABORATORY * primero = NULL;
+	int numLabs = 0;
 
 	//Variables para el trabajo con la lista de medicamentos
-	MEDICINE * listaMeds = NULL;	//Lista para mantener la información de los medicamentos
 	MEDICINE * medNueva = NULL;	//Puntero util para crear nuevos nodos de la lista
 	MEDICINE medAux;	//Estructura auxiliar para almacenar la información de los medicamentos
 
@@ -57,16 +66,13 @@ int main(int argc, char *argv[]){
 	//Variables para el cálculo de los costos y seguimiento de información
 	float Jtotal;
 	float * Jmin;
-	float Jtotalmin;
 	int ** matStockOptimo;
 	int ** matPedidosOptimos;
-	int primeraVez = 0;
+	int flag = 0;
 
 	//Variable para el trabajo con los nombres de los ficheros de datos
 	char ** filesName = NULL;
-
-	//Variable para el conteo del número de medicamentos
-	int numMed = 0;
+	char * labFile = NULL;
 
 	
 	/*Comprobamos que el numero de argumentos recibidos es el correto*/
@@ -317,144 +323,178 @@ int main(int argc, char *argv[]){
 						información de los medicamentos*/
 						FILE *fpd;
 						//Nombre del fichero en el que vienen los nombres del resto de ficheros
-						char * mainFile = "ficheros.pha";
+						char * mainFile = "labs.pha";
 
 						fpd = fopen ( mainFile , "r" );
 						if(fpd == NULL){	//Caso de no apertura pasar el error 
 							error = -7;
 						}else{
-							//Lectura del fichero hasta que termine
-							//Reservamos memoria para la matriz
-							filesName = (char **) malloc(sizeof(*filesName));
-
-							//Leemos hasta el final del fichero
+							labFile = malloc(TAM_FILE_NAME * sizeof(char*));
 							while(!feof(fpd)){
-								//En cada pasada realizamos reserva dinamica de memoria para la nueva cadena
-								filesName = realloc(filesName, (numMed+1) * sizeof(*filesName));
-							    filesName[numMed] = malloc(TAM_FILE_NAME * sizeof(char*));
+								fscanf(fpd, "%s", labFile);
+								labNuevo = CreaNodoLab(labFile);
+								EnlazaLabs(labNuevo, &listaLabs);
+								numLabs++;
+							}
+							if(fclose(fpd)){
+								printf("ERROR 8:\nCierre del fichero no posible\n");
+								error = -8;
+							}
 
-								fscanf(fpd, "%s", filesName[numMed]); //Cada linea la almacenamos en un vector de cadenas de caracteres
-								numMed++;
-							}
-							if( fclose(fpd) ){
-								error = -7;
-							}
+							free(labFile);
+							labFile = NULL;
 						}
-						if(error == -7){
+						if(error == -7 || error == -8){
 							printf("ERROR 7:\nLectura del fichero para acceder a información de medicamentos no válida\n");
 						}else{
 
-							/* Realizamos ahora la lectura de la información de cada uno de los 
-							medicamentos de su correspondiente archivo*/
-							for(i = 0; i<numMed; i++){
-								/*
-									Se realizan las operaciones pertinentes
-									de apertura, lectura y cerrado de fichero
-									con el que intercambiar información con
-									el programa en php para la web.
-									Se almacenan los datos en la estructura 
-									del medicamento.
-								*/
-								if(leeMedicamentos(horizonte, &medAux, filesName[i]) == -1){
-									printf("ERROR 8:\nLectura del fichero %s no válida\n", filesName[i]);
-									error = -8;
-									break;
-								}
-								medNueva = CreaNodoMed( medAux.stock, medAux.precio_med, medAux.precio_alm, medAux.coste_pedido, medAux.coste_recogida, medAux.coste_sin_stock, medAux.coste_oportunidad, medAux.repartidos, medAux.maxStock, medAux.minStock, medAux.nTamPedidos, medAux.vTamPedidos, horizonte);
-								BorraMedicina(&medAux);
-								EnlazaMedicinas (medNueva, &listaMeds);
-							}
-						
-							//Generamos las matrices de posibilidades para todos los fármacos	
-							MatrizCombMedicinas(&listaMeds, numPedidos);
+							/*Establecemos condiciones iniciales para no perder la referencia
+							inicial de la lista de nodos*/
+							labPrimero = &listaLabs;
+							primero = *labPrimero;
 
-							//Posibilidad de mostrar por pantalla toda la información de todos los fármacos
-						//	ImprimeMedicinas(listaMeds, horizonte, numPedidos);
+							printf("numLabs: %d\n", numLabs);
+							while( *labPrimero != NULL ){
 
-	/*--------------------------------------------------------------------------
-	------------------------Calculamos posibilidad a posibilidad----------------
-	--------------------------------------------------------------------------*/
-							for(j=0;j<horizonte;j++){
-								limite=limite*2;
-							}
-							
-							inicializaVector(horizonte, &posibilidad);
-							int num;
-							int noCumple;
+								labsIndex++;
 
-							for(num = 0; num<limite; num++){
-								//Inicializamos noCumple a 0 para cada posibilidad//
-								noCumple = 0;
+								//Recorremos cada nodo de la lista de laboratorios
+								paux = *labPrimero;
+								*labPrimero = paux->sig;
 
-								convIntToBin(num, horizonte, posibilidad);
+								fpd = fopen(paux->fileName, "r");
 
-								//Comprueba que cumple dias no posibles//
-								for(i = 0; i<horizonte; i++){
-									if(diasNO[i] == 1 && posibilidad[i] == 1){
-										noCumple = 1;
+								if(fpd == NULL){
+									printf("ERROR 9:\nLectura del fichero con informacion de los medicamentos no válida\n");
+									error = -9;
+								}else{
+
+									//Reservamos memoria para la matriz
+									filesName = (char **) malloc(sizeof(*filesName));
+									//Leemos hasta el final del fichero
+									while(!feof(fpd)){
+										//En cada pasada realizamos reserva dinamica de memoria para la nueva cadena
+										filesName = realloc(filesName, (paux->numMed+1) * sizeof(*filesName));
+									    filesName[paux->numMed] = malloc(TAM_FILE_NAME * sizeof(char*));
+
+										fscanf(fpd, "%s", filesName[paux->numMed]); //Cada linea la almacenamos en un vector de cadenas de caracteres
+										paux->numMed++;
 									}
-								}
-								//Comprueba pedidos consecutivos//
-								if(noCumple == 0){
-									for(i = 1; i<horizonte; i++){
-										if(posibilidad[i] == 1 && posibilidad[i-1] == 1){
-											noCumple = 1;
+									if( fclose(fpd) ){
+										printf("ERROR 10:\nERROR de cierre del fichero\n");
+										error = -10;
+									}else{
+
+										/* Realizamos ahora la lectura de la información de cada uno de los 
+										medicamentos de su correspondiente archivo*/
+										for(i = 0; i< (paux->numMed); i++){
+											/*
+												Se realizan las operaciones pertinentes
+												de apertura, lectura y cerrado de fichero
+												con el que intercambiar información con
+												el programa en php para la web.
+												Se almacenan los datos en la estructura 
+												del medicamento.
+											*/
+											if(leeMedicamentos(horizonte, &medAux, filesName[i]) == -1){
+												printf("ERROR 11:\nLectura del fichero %s no válida\n", filesName[i]);
+												error = -11;
+												break;
+											}
+											printf("LLEGA a CreaNodoMed-> Laboratorio %d: filesName[%d]: %s\n", labsIndex, i, filesName[i]);
+											medNueva = CreaNodoMed( medAux.stock, medAux.precio_med, medAux.precio_alm, medAux.coste_pedido, medAux.coste_recogida, medAux.coste_sin_stock, medAux.coste_oportunidad, medAux.repartidos, medAux.maxStock, medAux.minStock, medAux.nTamPedidos, medAux.vTamPedidos, horizonte);
+											printf("PASA CreaNodoMed-> Laboratorio %d: filesName[%d]: %s\n", labsIndex, i, filesName[i]);
+											BorraMedicina(&medAux);
+											EnlazaMedicinas (medNueva, &paux->listaMeds);
 										}
-									}
-									//Comprueba número de pedidos solicitados//
-									if(noCumple == 0){
-										int auxNumPedidos = 0;
-										for(i = 0; i<horizonte; i++){
-											if(posibilidad[i] == 1){
-												auxNumPedidos++;
+										//Generamos las matrices de posibilidades para todos los fármacos	
+										MatrizCombMedicinas(&paux->listaMeds, numPedidos);
+
+										//Posibilidad de mostrar por pantalla toda la información de todos los fármacos
+									//	ImprimeMedicinas(listaMeds, horizonte, numPedidos);
+
+				/*--------------------------------------------------------------------------
+				------------------------Calculamos posibilidad a posibilidad----------------
+				--------------------------------------------------------------------------*/
+										for(j=0;j<horizonte;j++){
+											limite=limite*2;
+										}
+										
+										inicializaVector(horizonte, &posibilidad);
+										int num;
+										int noCumple;
+
+										for(num = 0; num<limite; num++){
+											//Inicializamos noCumple a 0 para cada posibilidad//
+											noCumple = 0;
+
+											convIntToBin(num, horizonte, posibilidad);
+
+											//Comprueba que cumple dias no posibles//
+											for(i = 0; i<horizonte; i++){
+												if(diasNO[i] == 1 && posibilidad[i] == 1){
+													noCumple = 1;
+												}
+											}
+											//Comprueba pedidos consecutivos//
+											if(noCumple == 0){
+												for(i = 1; i<horizonte; i++){
+													if(posibilidad[i] == 1 && posibilidad[i-1] == 1){
+														noCumple = 1;
+													}
+												}
+												//Comprueba número de pedidos solicitados//
+												if(noCumple == 0){
+													int auxNumPedidos = 0;
+													for(i = 0; i<horizonte; i++){
+														if(posibilidad[i] == 1){
+															auxNumPedidos++;
+														}
+													}
+													if(auxNumPedidos != numPedidos){
+														noCumple = 1;
+													}
+													//Apertura de fichero y trabajo para evaluar función de coste
+													if(noCumple == 0){
+
+														//Reservamos espacios de memoria utiles para esta posibilidad
+														inicializaMatriz(paux->numMed, horizonte, &matPedidosOptimos);
+														inicializaMatriz(paux->numMed, horizonte, &matStockOptimo);
+														Jmin = (float*) malloc(paux->numMed*sizeof(float));
+
+														//Funcion en funciones.c
+														/*Realiza el calculo de el vector optimo para cada medicamento y almacena la información util
+														en el nodo correspondiente*/
+														Jtotal = EvaluaMedicinas(&(paux->listaMeds), horizonte, numPedidos, posibilidad, matPedidosOptimos, matStockOptimo, Jmin);
+														if (Jtotal < paux->Jtotal || flag == 0){
+															flag = 1;
+															paux->Jtotal = Jtotal;
+															AlmacenaOptimos(&(paux->listaMeds), horizonte, matPedidosOptimos, matStockOptimo, Jmin);
+														}
+														
+														//Liberamos los espacios de memoria previamente reservados para esta posibilidad
+														liberaVector(posibilidad);
+														liberaMatriz(paux->numMed, matPedidosOptimos);
+														liberaMatriz(paux->numMed, matStockOptimo);
+														free(Jmin);
+														Jmin = NULL;
+														
+													}
+												}
 											}
 										}
-										if(auxNumPedidos != numPedidos){
-											noCumple = 1;
-										}
-										//Apertura de fichero y trabajo para evaluar función de coste
-										if(noCumple == 0){
-
-											int flag = 0;
-
-											if(primeraVez == 0){
-												primeraVez = 1;
-												inicializaMatriz(numMed, horizonte, &matPedidosOptimos);
-												inicializaMatriz(numMed, horizonte, &matStockOptimo);
-												Jmin = (float*) malloc(numMed*sizeof(float));
-											}
-
-											//Funcion en funciones.c
-											/*Realiza el calculo de el vector optimo para cada medicamento y almacena la información util
-											en el nodo correspondiente*/
-
-											Jtotal = EvaluaMedicinas(&listaMeds, horizonte, numPedidos, posibilidad, matPedidosOptimos, matStockOptimo, Jmin);
-											if (Jtotal < Jtotalmin || flag == 0){
-												flag = 1;
-												Jtotalmin = Jtotal;
-												AlmacenaOptimos(&listaMeds, horizonte, matPedidosOptimos, matStockOptimo, Jmin);
-											}
-										}
 									}
+									free(filesName);
+									filesName = NULL;
+									flag = 0;
 								}
 							}
-							liberaVector(posibilidad);
-							liberaMatriz(numMed, matPedidosOptimos);
-							liberaMatriz(numMed, matStockOptimo);
+							*labPrimero = primero;
 						}
 
-						// Liberamos espacios de memoria utilizados durante el proceso
-						for(i = 0; i<numMed; i++){
-							free(filesName[i]);
-							filesName[i] = NULL;
-						}
-						free(filesName);
-						filesName = NULL;
-						free(Jmin);
-						Jmin = NULL;
 						
-						ImprimeResultados(&listaMeds, horizonte);
-						BorraMedicinas (&listaMeds);
+						ImprimeResultados(&listaLabs, horizonte);
+						BorraLabs (&listaLabs);
 					}
 				}
 			}

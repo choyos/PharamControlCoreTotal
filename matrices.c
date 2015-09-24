@@ -63,7 +63,6 @@ void inicializaMatriz(int numFilas, int numColumnas, int ***matriz){
 void inicializaVector(int dim, int **vector){
 	inicializaV++;
 	(*vector) = (int*) malloc(dim*sizeof(int));
-	printf("inicializaVector\n");
 }
 
 void liberaMatriz(int numFilas, int ** matriz){

@@ -12,29 +12,11 @@ Login: ceshoymar */
 #include "evalua.h"
 #include "fechas.h"
 
-#define TAM_FILE_NAME 20
-
-LABORATORY * CreaNodoLab(char * fileName){
-	
-	LABORATORY * p = NULL;
-	p = (LABORATORY * ) malloc(sizeof(LABORATORY));
-
-	if(p != NULL){
-		p->fileName = malloc(TAM_FILE_NAME * sizeof(char*));
-		strcpy(p->fileName, fileName);
-		p->numMed = 0;
-	}
-
-	return p;
-}
-
 MEDICINE * CreaNodoMed ( int stock, float precio_med, float precio_alm, float coste_pedido, float coste_recogida, float coste_sin_stock, float coste_oportunidad, int* repartidos, int maxStock, int minStock, int nTamPedidos, int* vTamPedidos, int horizonte)
 {
 	int i;
 	MEDICINE *p = NULL;
 	p = (MEDICINE *) malloc(sizeof(MEDICINE));	//Reservamos memoria para la estructura MEDICINE
-	
-	//Si no hay problemas al inicializar el puntero
 	if (p != NULL){
 		
 		//Inicializamos los siguientes campos de la estructura;
@@ -58,9 +40,7 @@ MEDICINE * CreaNodoMed ( int stock, float precio_med, float precio_alm, float co
     	p->sig = NULL;				//el puntero al siguiente programa de la lista a NULL.
     	//Inicializamos los vectores del medicamento
 		inicializaVector(horizonte, &(p->pedidosOptimos));
-		printf("CreaNodoMed: Llega inicializaVector stockOptimo. horizonte = %d\n", horizonte);
 		inicializaVector(horizonte, &(p->stockOptimo));
-		printf("CreaNodoMed: Pasa inicializaVector stockOptimo\n");
     }
   return p;
 }
@@ -72,25 +52,6 @@ void BorraMedicina(MEDICINE * medicina){
 		liberaVector(medicina->repartidos);
 	if( medicina->vTamPedidos != NULL)			
 		liberaVector(medicina->vTamPedidos);
-}
-
-void EnlazaLabs (LABORATORY * laboratorioNuevo, LABORATORY ** laboratorioPrimero){
-	LABORATORY * anterior = NULL;
-	LABORATORY * primero = *laboratorioPrimero;
-
-	while( *laboratorioPrimero != NULL){
-		anterior = (*laboratorioPrimero);
-		*laboratorioPrimero = (*laboratorioPrimero)->sig;
-	}
-
-	if(anterior == NULL){
-		laboratorioNuevo->sig = *laboratorioPrimero;
-		*laboratorioPrimero = laboratorioNuevo;
-	}else{
-		anterior->sig = laboratorioNuevo;
-		laboratorioNuevo->sig = *laboratorioPrimero;
-		*laboratorioPrimero = primero;
-	}
 }
 
 void EnlazaMedicinas (MEDICINE * medicinaNueva, MEDICINE ** medicinaPrimera)	//Esta funcion enlaza los programas ordenados segun su hora de inicio
@@ -123,7 +84,6 @@ void ImprimeMedicinas (MEDICINE * pAnterior, int horizonte, int numPedidos)
 	int i = 0;
 	int j;
 	int x;
-
 	while (pAnterior != NULL)
 	{
 		i++;
@@ -198,24 +158,6 @@ void MatrizCombMedicinas (MEDICINE ** medicinaPrimera, int numPedidos){
 	*medicinaPrimera = primero;
 }
 
-void BorraLabs(LABORATORY ** laboratorioPrimero){
-
-	//Puntero auxiliar para recorrido de la lista
-	LABORATORY * paux = NULL;
-
-	while(*laboratorioPrimero != NULL){
-		//Recorremos la lista
-		paux = *laboratorioPrimero;
-		*laboratorioPrimero = paux->sig;
-
-		//Borramos los medicamentos asociados al laboratorio
-		BorraMedicinas(&paux->listaMeds);
-
-		//Liberamos la referencia del nodo eliminandolo
-		free(paux);
-	}
-}
-
 void BorraMedicinas (MEDICINE ** medicinaPrimera){
   
   //Puntero auxiliar para recorrido de lista
@@ -264,18 +206,15 @@ float EvaluaMedicinas(MEDICINE ** medicinaPrimera, int horizonte, int numPedidos
 	float Jtotal;
 
 	//Inicializamos los vectores y matrices necesarios
-
+	inicializaMatriz(primero->filasMatrixComb, horizonte, &matrix);
+	inicializaVector(horizonte, &stock);
 
 	while(*medicinaPrimera != NULL){
 
 		//Recorremos la lista
 		paux = *medicinaPrimera;
 		*medicinaPrimera = paux->sig;
-		
-		//Inicializamos matrices para cada caso
-		inicializaMatriz(paux->filasMatrixComb, horizonte, &matrix);
-		inicializaVector(horizonte, &stock);
-		
+
 		/*Generamos la matriz para evaluar las diferentes posibilidades de pedido*/
 		for(k = 0; k < paux->filasMatrixComb; k++){		// Accedemos todas las veces de las combinaciones posibles
 			for(j = 0; j < horizonte; j++){		// En el recorrido
@@ -289,7 +228,7 @@ float EvaluaMedicinas(MEDICINE ** medicinaPrimera, int horizonte, int numPedidos
 			}
 			g=0;	//Al finalizar cada pasada reiniciamos el contador g a 0
 		}
-
+		
 		/*Realizamos el computo con todas las posibilidades de la matriz obteniendo las Js*/
 		for(x = 0; x < paux->filasMatrixComb; x++){
 			inicializa(stock, horizonte);
@@ -307,10 +246,6 @@ float EvaluaMedicinas(MEDICINE ** medicinaPrimera, int horizonte, int numPedidos
 		//Sum(Jmin_i) Sumamos los minimos de los medicamentos
 		Jtotal = Jtotal + Jmin[i];
 
-		//Liberamos espacio de matrices para cada caso
-		liberaMatriz(paux->filasMatrixComb, matrix);
-		liberaVector(stock);
-
 		i++;
 	}
 		
@@ -318,9 +253,12 @@ float EvaluaMedicinas(MEDICINE ** medicinaPrimera, int horizonte, int numPedidos
 	al computo de medicamentos de forma individual)*/
 	Jtotal = Jtotal + numPedidos * (primero->coste_pedido + primero->coste_recogida);
 
-
 	//Recuperamos la referencia del principio
 	*medicinaPrimera = primero;
+
+	//Liberamos memoria de matrices y vectores reservados
+	liberaMatriz(primero->filasMatrixComb, matrix);
+	liberaVector(stock);
 
 	//Devolvemos el resultado de evaluar todos 
 	return Jtotal;
@@ -355,41 +293,7 @@ void AlmacenaOptimos(MEDICINE ** medicinaPrimera, int horizonte, int ** matPedid
 	*medicinaPrimera = primero; 
 }
 
-void ImprimeResultados(LABORATORY ** laboratorioPrimero, int horizonte){
-	
-	//Variables auxiliares para el recorrido de la lista de labs
-	LABORATORY * paux = NULL;
-	LABORATORY * primero = *laboratorioPrimero;
-
-	int i = 0;
-	float Jmin = 0;
-
-	printf("\t================\n");
-	printf("\t===Resultados===\n");
-	printf("\t================\n");
-
-	while (*laboratorioPrimero != NULL){
-
-		i++;
-
-		//Recorremos la lista
-		paux = *laboratorioPrimero;
-		*laboratorioPrimero = paux->sig;
-
-		printf("\tLaboratorio %d:\n", i);
-		ImprimeResultadosMeds(&paux->listaMeds, horizonte, paux->Jtotal);
-
-		//Calculamos el coste total del hospital
-		Jmin = Jmin + paux->Jtotal;
-	}
-
-	printf("\n\tCoste total del hospital: %.2f\n", Jmin);
-
-	//Recuperamos la referencia
-	*laboratorioPrimero = primero;
-}
-
-void ImprimeResultadosMeds(MEDICINE ** medicinaPrimera, int horizonte, float Jtotal){
+void ImprimeResultados(MEDICINE ** medicinaPrimera, int horizonte, float Jtotal){
 
 	//Punteros para recorrido de lista
 	MEDICINE * paux = NULL;
@@ -400,7 +304,10 @@ void ImprimeResultadosMeds(MEDICINE ** medicinaPrimera, int horizonte, float Jto
 	int j;
 	int numPedidos;
 
-	printf("\n\tCoste total del laboratorio: %f\n", Jtotal);
+	printf("\t================\n");
+	printf("\t===Resultados===\n");
+	printf("\t================\n");
+	printf("\n\tCoste total: %.2f\n\n", Jtotal);
 
 	while(*medicinaPrimera != NULL){
 

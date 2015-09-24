@@ -70,18 +70,24 @@ void liberaMatriz(int numFilas, int ** matriz){
 	liberaM++;
 	int i;
 
-	for(i = 0; i < numFilas; i++){
-		free(matriz[i]);
-		matriz[i] = NULL;
+	if(matriz != NULL){
+		for(i = 0; i < numFilas; i++){
+			if(matriz[i] != NULL){
+				free(matriz[i]);
+				matriz[i] = NULL;
+			}
+		}
+		free(matriz);
+		matriz = NULL;
 	}
-	free(matriz);
-	matriz = NULL;
 }
 
 void liberaVector(int *vector){
 	liberaV++;
-	free(vector);
-	vector = NULL;
+	if(vector != NULL){
+		free(vector);
+		vector = NULL;
+	}
 }
 
 void convIntToBin(int num, int bits,int *posibilidad){

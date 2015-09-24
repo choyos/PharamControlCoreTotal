@@ -39,8 +39,8 @@ MEDICINE * CreaNodoMed ( int stock, float precio_med, float precio_alm, float co
     	p->vTamPedidos[nTamPedidos] = 0;
     	p->sig = NULL;				//el puntero al siguiente programa de la lista a NULL.
     	//Inicializamos los vectores del medicamento
-		inicializaVector(horizonte, &(p->pedidosOptimos));
-		inicializaVector(horizonte, &(p->stockOptimo));
+		p->pedidosOptimos =  (int*) malloc( horizonte * sizeof(int));
+		p->stockOptimo = (int*) malloc( horizonte * sizeof(int));
     }
   return p;
 }
@@ -169,16 +169,22 @@ void BorraMedicinas (MEDICINE ** medicinaPrimera){
     *medicinaPrimera = paux->sig;
 	
     //Liberamos memoria de vectores y matrices
-	if( paux->repartidos != NULL)			
+	if( paux->repartidos != NULL){
 		liberaVector(paux->repartidos);
-	if( paux->vTamPedidos != NULL)			
+	}			
+	if( paux->vTamPedidos != NULL){
 		liberaVector(paux->vTamPedidos);
-	if(paux->matrixComb != NULL)
+	}			
+	if(paux->matrixComb != NULL){
 		liberaMatriz(paux->filasMatrixComb, paux->matrixComb);
-	if(paux->pedidosOptimos != NULL)
+	}
+	if(paux->pedidosOptimos != NULL){
 		liberaVector(paux->pedidosOptimos);
-	if(paux->stockOptimo != NULL)
+	}
+	if(paux->stockOptimo != NULL){
 		liberaVector(paux->stockOptimo);
+  		printf("BorraMedicinas\n");
+	}
 
 	//Liberamos la referencia del nodo eliminandolo
     free(paux);
@@ -203,7 +209,7 @@ float EvaluaMedicinas(MEDICINE ** medicinaPrimera, int horizonte, int numPedidos
 	//Variables auxiliares para el computo
 	int *stock;
 	float J;
-	float Jtotal;
+	float Jtotal = 0;
 
 	//Inicializamos los vectores y matrices necesarios
 	inicializaMatriz(primero->filasMatrixComb, horizonte, &matrix);

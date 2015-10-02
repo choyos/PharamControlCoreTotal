@@ -304,9 +304,6 @@ void ImprimeResultados(MEDICINE ** medicinaPrimera, int horizonte, float Jtotal)
 	int j;
 	int numPedidos;
 
-	printf("\t================\n");
-	printf("\t===Resultados===\n");
-	printf("\t================\n");
 	printf("\n\tCoste total: %.2f\n\n", Jtotal);
 
 	while(*medicinaPrimera != NULL){

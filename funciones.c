@@ -293,7 +293,7 @@ void AlmacenaOptimos(MEDICINE ** medicinaPrimera, int horizonte, int ** matPedid
 	*medicinaPrimera = primero; 
 }
 
-void ImprimeResultados(MEDICINE ** medicinaPrimera, int horizonte, float Jtotal){
+void ImprimeResultados(MEDICINE ** medicinaPrimera, int horizonte, float Jtotal, char ** fileName){
 
 	//Punteros para recorrido de lista
 	MEDICINE * paux = NULL;
@@ -311,30 +311,35 @@ void ImprimeResultados(MEDICINE ** medicinaPrimera, int horizonte, float Jtotal)
 		numPedidos = 0;
 
 		//Incrementamos el contador auxiliar
-		i++;
 
 		//Recorremos la lista
 		paux = *medicinaPrimera;
 		*medicinaPrimera = paux->sig;
 
-		printf("\tMedicamento %d\n", i);
-		printf("\tStock Optimo %d:\t\t",i);
-		imprimeVector(horizonte, paux->stockOptimo);
-		printf("\n\tPedidos optimos %d:\t",i);
-		imprimeVector(horizonte, paux->pedidosOptimos);
-		printf("\n");
+		printf("\"%s\":{\n", fileName[i]);
+		printf("\"stockOpt\":[");
+		for(j = 0; j < horizonte ; j++){
+			if(j != 0)
+				printf(",");
+			printf("%d", paux->stockOptimo[j]);
+		}
+		printf("],\n");
+		printf("\"pedidoOpt\":[");
+		for(j = 0; j < horizonte ; j++){
+			if(j != 0)
+				printf(",");
+			printf("%d", paux->pedidosOptimos[j]);
+		}
+		printf("],\n");
 		for(j=0;j<horizonte; j++){
 			if(paux->pedidosOptimos[j] != 0){
 				numPedidos++;
 			}
 		}
 
-		/*Función de fechas.c que muestra por pantalla de forma ordenada 
-		cuando y cuanto hay que solicitar*/
-		printf("\tFechas de pedido %d:\n", i);
-		obtieneFechasPedidos(paux->pedidosOptimos, horizonte, numPedidos);
-		printf("\n");
+		i++;
 	}
+	printf("\"Coste_lab\":%.2f}\n", Jtotal);
 
 	//Recuperamos la referencia
 	*medicinaPrimera = primero;

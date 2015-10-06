@@ -461,6 +461,7 @@ int main(int argc, char *argv[]){
 								primeraVez = 0;
 								flag = 0;
 								// Liberamos espacios de memoria utilizados durante el proceso
+								ImprimeResultados(&listaMeds, horizonte, Jtotalmin, filesName);
 								for(i = 0; i<numMed; i++){
 									free(filesName[i]);
 									filesName[i] = NULL;
@@ -470,13 +471,6 @@ int main(int argc, char *argv[]){
 								free(Jmin);
 								Jmin = NULL;
 								Jhospital = Jhospital + Jtotalmin;
-								if(showResult == 0){
-									showResult = 1;
-									printf("\t================\n");
-									printf("\t===Resultados===\n");
-									printf("\t================\n");
-								}
-								ImprimeResultados(&listaMeds, horizonte, Jtotalmin);
 								BorraMedicinas (&listaMeds);
 							}
 							printf("\tCoste total fármacos del hospital: %.2f\n",Jhospital );

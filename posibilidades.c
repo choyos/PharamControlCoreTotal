@@ -443,7 +443,6 @@ int main(int argc, char *argv[]){
 													//Funcion en funciones.c
 													/*Realiza el calculo de el vector optimo para cada medicamento y almacena la información util
 													en el nodo correspondiente*/
-
 													Jtotal = EvaluaMedicinas(&listaMeds, horizonte, numPedidos, posibilidad, matPedidosOptimos, matStockOptimo, Jmin);
 													if (Jtotal < Jtotalmin || flag == 0){
 														flag = 1;
@@ -478,9 +477,9 @@ int main(int argc, char *argv[]){
 									printf("\t================\n");
 								}
 								ImprimeResultados(&listaMeds, horizonte, Jtotalmin);
-								printf("\tCoste total fármacos del hospital: %.2f\n",Jhospital );
 								BorraMedicinas (&listaMeds);
 							}
+							printf("\tCoste total fármacos del hospital: %.2f\n",Jhospital );
 						}
 					}
 				}

@@ -203,7 +203,7 @@ float EvaluaMedicinas(MEDICINE ** medicinaPrimera, int horizonte, int numPedidos
 	//Variables auxiliares para el computo
 	int *stock;
 	float J;
-	float Jtotal;
+	float Jtotal = 0;
 
 	//Inicializamos los vectores y matrices necesarios
 	inicializaMatriz(primero->filasMatrixComb, horizonte, &matrix);
@@ -242,7 +242,7 @@ float EvaluaMedicinas(MEDICINE ** medicinaPrimera, int horizonte, int numPedidos
 				}
 			}
 		}
-		
+	//	printf("PASA\n");
 		//Sum(Jmin_i) Sumamos los minimos de los medicamentos
 		Jtotal = Jtotal + Jmin[i];
 

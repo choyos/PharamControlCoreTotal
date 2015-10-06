@@ -14,4 +14,4 @@ Nombre: César*/
 //Función que evalua cada posibilidad para devolver un coste total de medicamentos
 float evalua(int* pedidos, int horizonte, int retraso, int* stock, MEDICINE *med);
 
-int minimo(int dim, int * vector);
+int minimo(int dim, int * vector, int diferencia);

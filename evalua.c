@@ -28,6 +28,7 @@ float evalua(int* pedidos, int horizonte, int retraso, int* stock, MEDICINE *med
 	int k;
 	float J = 0;
 	int noStock;
+	int diferenciaStock;
 
 
 	//Calculo de J y stock
@@ -43,10 +44,11 @@ float evalua(int* pedidos, int horizonte, int retraso, int* stock, MEDICINE *med
 			Tenemos en cuenta la restricción de que el stock 
 			no puede ser menor a una cantidad dada.
 		*/
-		if((stock[k])<med->minStock){
+		if((stock[k]) < med->minStock){
 			noStock = 1;
-			stock[k]=stock[k]+minimo(med->nTamPedidos, med->vTamPedidos);
-			pedidos[k]=minimo(med->nTamPedidos, med->vTamPedidos);
+			diferenciaStock = med->minStock - stock[k];
+			pedidos[k] = minimo(med->nTamPedidos, med->vTamPedidos, diferenciaStock);
+			stock[k] = stock[k] + pedidos[k];
 		}else{
 			noStock = 0;
 		}
@@ -56,13 +58,16 @@ float evalua(int* pedidos, int horizonte, int retraso, int* stock, MEDICINE *med
 	return J;
 }
 
-int minimo(int dim, int * vector){
+int minimo(int dim, int * vector, int diferencia){
 	int i;
-	int minimo;
+	int flag = 0;
+	int minimo = 0;
+
 	for(i = 0; i<dim; i++){
-		if(i == 0 && vector[i] != 0){
+		if(flag == 0 && vector[i] != 0 && (vector[i] > diferencia)){
+			flag = 1;
 			minimo = vector[i];
-		}else if(vector[i] < minimo && vector[i] != 0){
+		}else if(vector[i] < minimo && vector[i] != 0 && (vector[i] > diferencia)){
 			minimo = vector[i];
 		}
 	}

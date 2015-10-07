@@ -329,10 +329,15 @@ int main(int argc, char *argv[]){
 							error = -7;
 						}else{
 
+							printf("{[" );
 							while(!feof(fpLab)){
 								char * mainFile = (char * )malloc(TAM_FILE_NAME * sizeof(char));
 
 								fscanf(fpLab, "%s", mainFile);
+								if(showResult != 0)
+									printf(",");
+								showResult = 1;
+								printf("\"%s\":", mainFile);
 
 								fpd = fopen ( mainFile , "r" );
 								free(mainFile);
@@ -460,7 +465,7 @@ int main(int argc, char *argv[]){
 								numMed = 0;
 								primeraVez = 0;
 								flag = 0;
-								// Liberamos espacios de memoria utilizados durante el proceso
+								// Liberamos espacios de memoria utilizados durante el proceso								
 								ImprimeResultados(&listaMeds, horizonte, Jtotalmin, filesName);
 								for(i = 0; i<numMed; i++){
 									free(filesName[i]);
@@ -473,16 +478,14 @@ int main(int argc, char *argv[]){
 								Jhospital = Jhospital + Jtotalmin;
 								BorraMedicinas (&listaMeds);
 							}
-							printf("\tCoste total fármacos del hospital: %.2f\n",Jhospital );
+							printf("],\"Coste_hospital\":%.2f}\n",Jhospital );
 						}
 					}
 				}
 			}
 		}
 	}
-	printf("\n");
-	printf("Tiempo transcurrido: %f\n\n", ((double)clock() - start) / CLOCKS_PER_SEC);	
-	
 
+	printf("\n");
 	return error;
 }

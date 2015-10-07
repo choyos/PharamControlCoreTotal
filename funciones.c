@@ -295,6 +295,10 @@ void AlmacenaOptimos(MEDICINE ** medicinaPrimera, int horizonte, int ** matPedid
 
 void ImprimeResultados(MEDICINE ** medicinaPrimera, int horizonte, float Jtotal, char ** fileName){
 
+
+	//Imprime la salida de un laboratorio ajustandose al formato JSON
+
+	
 	//Punteros para recorrido de lista
 	MEDICINE * paux = NULL;
 	MEDICINE * primero = *medicinaPrimera;
@@ -304,11 +308,13 @@ void ImprimeResultados(MEDICINE ** medicinaPrimera, int horizonte, float Jtotal,
 	int j;
 	int numPedidos;
 
-	printf("\n\tCoste total: %.2f\n\n", Jtotal);
+	printf("{[");
 
 	while(*medicinaPrimera != NULL){
 
 		numPedidos = 0;
+		if(i != 0)
+			printf(",");
 
 		//Incrementamos el contador auxiliar
 
@@ -316,30 +322,31 @@ void ImprimeResultados(MEDICINE ** medicinaPrimera, int horizonte, float Jtotal,
 		paux = *medicinaPrimera;
 		*medicinaPrimera = paux->sig;
 
-		printf("\"%s\":{\n", fileName[i]);
+		printf("\"%s\":{", fileName[i]);
 		printf("\"stockOpt\":[");
 		for(j = 0; j < horizonte ; j++){
 			if(j != 0)
 				printf(",");
 			printf("%d", paux->stockOptimo[j]);
 		}
-		printf("],\n");
+		printf("],");
 		printf("\"pedidoOpt\":[");
 		for(j = 0; j < horizonte ; j++){
 			if(j != 0)
 				printf(",");
 			printf("%d", paux->pedidosOptimos[j]);
 		}
-		printf("],\n");
+		printf("]");
 		for(j=0;j<horizonte; j++){
 			if(paux->pedidosOptimos[j] != 0){
 				numPedidos++;
 			}
 		}
-
+		printf("}");
 		i++;
 	}
-	printf("\"Coste_lab\":%.2f}\n", Jtotal);
+	printf("],");
+	printf("\"Coste_lab\":%.2f}", Jtotal);
 
 	//Recuperamos la referencia
 	*medicinaPrimera = primero;
